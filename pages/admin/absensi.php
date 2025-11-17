@@ -7,7 +7,7 @@ include "../../database/connect.php";
 
 <head>
   <meta charset="utf-8">
-  <title>Absensi OSIS - Mode Checklist Cepat</title>
+  <title>Absensi OSIS </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="../../assets/common.css" rel="stylesheet">
   <style>
@@ -41,7 +41,7 @@ include "../../database/connect.php";
         ☰
       </button>
       <a class="navbar-brand ms-2" href="#">Absensi OSIS</a>
-      <div class="d-flex align-items-center gap-3 ms-auto">
+      <div class="d-none d-md-flex align-items-center gap-3 ms-auto">
         <span class="badge bg-info text-dark">ADMIN</span>
         <a href="../../core/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
       </div>
@@ -106,14 +106,13 @@ include "../../database/connect.php";
                   </div>
                   <div class="col-md-6 text-end">
                     <button type="button" id="toggleAll" class="btn btn-outline-primary me-2">Pilih Semua</button>
-                    <button type="reset" class="btn btn-danger me-2">Reset</button>
                     <button type="submit" class="btn btn-primary">Simpan Kehadiran</button>
                   </div>
                 </div>
-<div class="input-group mb-3">
-  <span class="input-group-text bg-dark text-light border-secondary">🔍</span>
-  <input type="text" id="searchInput" class="form-control bg-dark text-light border-secondary" placeholder="Cari nama, kelas, atau jurusan...">
-</div>
+                <div class="input-group mb-3">
+                  <span class="input-group-text bg-dark text-light border-secondary">🔍</span>
+                  <input type="text" id="searchInput" class="form-control bg-dark text-light border-secondary" placeholder="Cari nama, kelas, atau jurusan...">
+                </div>
 
                 <div class="table-responsive">
                   <table class="table table-dark table-hover align-middle">
@@ -219,39 +218,39 @@ include "../../database/connect.php";
   </div>
 
   <script>
-document.querySelectorAll('.statusDropdown').forEach(select => {
-  select.addEventListener('change', async (e) => {
-    const id = e.target.dataset.id;
-    const status = e.target.value;
+    document.querySelectorAll('.statusDropdown').forEach(select => {
+      select.addEventListener('change', async (e) => {
+        const id = e.target.dataset.id;
+        const status = e.target.value;
 
-    let keterangan = '';
-    if (status === 'Izin' || status === 'Sakit') {
-      keterangan = prompt(`Masukkan keterangan untuk status ${status}:`, '');
-      if (keterangan === null) {
-        // Jika dibatalkan, kembalikan dropdown ke status lama
-        e.target.value = e.target.getAttribute('data-prev') || 'Hadir';
-        return;
-      }
-    }
+        let keterangan = '';
+        if (status === 'Izin' || status === 'Sakit') {
+          keterangan = prompt(`Masukkan keterangan untuk status ${status}:`, '');
+          if (keterangan === null) {
+            // Jika dibatalkan, kembalikan dropdown ke status lama
+            e.target.value = e.target.getAttribute('data-prev') || 'Hadir';
+            return;
+          }
+        }
 
-    const res = await fetch('../../core/update-status.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: `id=${id}&status=${status}&keterangan=${encodeURIComponent(keterangan)}`
+        const res = await fetch('../../core/update-status.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: `id=${id}&status=${status}&keterangan=${encodeURIComponent(keterangan)}`
+        });
+
+        const text = await res.text();
+        if (text.trim() === 'ok') {
+          e.target.style.backgroundColor = '#198754'; // hijau sukses
+          e.target.setAttribute('data-prev', status);
+          setTimeout(() => e.target.style.backgroundColor = '#212529', 700);
+        } else {
+          e.target.style.backgroundColor = '#dc3545'; // merah error
+        }
+      });
     });
-
-    const text = await res.text();
-    if (text.trim() === 'ok') {
-      e.target.style.backgroundColor = '#198754'; // hijau sukses
-      e.target.setAttribute('data-prev', status);
-      setTimeout(() => e.target.style.backgroundColor = '#212529', 700);
-    } else {
-      e.target.style.backgroundColor = '#dc3545'; // merah error
-    }
-  });
-});
 
 
 
@@ -326,28 +325,67 @@ document.querySelectorAll('.statusDropdown').forEach(select => {
           alert("⚠️ Pilih jadwal kegiatan terlebih dahulu!");
         }
       });
-    });
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById('searchInput');
-  const rows = document.querySelectorAll('tbody tr');
 
-  if (searchInput) {
-    searchInput.addEventListener('keyup', () => {
-      const keyword = searchInput.value.toLowerCase();
+      // === Reset handler: restore UI state after native form reset ===
+      form.addEventListener('reset', (e) => {
+        // run after browser resets form controls
+        setTimeout(() => {
+          try {
+            // reset header checkbox and toggle button
+            if (headerCheckbox) headerCheckbox.checked = false;
+            if (toggleAllBtn) toggleAllBtn.textContent = 'Pilih Semua';
 
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        if (text.includes(keyword)) {
-          row.style.display = "";
-          row.style.opacity = "1";
-        } else {
-          row.style.display = "none";
-        }
+            // show all rows and uncheck each checkbox
+            checkboxes.forEach(cb => {
+              cb.checked = false;
+              const row = cb.closest('tr');
+              if (row) {
+                row.style.display = '';
+                row.style.opacity = '1';
+              }
+            });
+
+            // reset internal allChecked flag
+            try {
+              allChecked = false;
+            } catch (err) {}
+
+            // reset hiddenTanggal based on selectJadwal current selection (or clear)
+            if (selectJadwal) {
+              const opt = selectJadwal.options[selectJadwal.selectedIndex];
+              hiddenTanggal.value = opt ? (opt.getAttribute('data-tanggal') || '') : '';
+            }
+
+            // clear search input and show all rows (already shown above)
+            const si = document.getElementById('searchInput');
+            if (si) si.value = '';
+          } catch (err) {
+            // swallow errors to avoid breaking reset
+            console.error('Reset handler error', err);
+          }
+        }, 30);
       });
     });
-  }
-});
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById('searchInput');
+      const rows = document.querySelectorAll('tbody tr');
 
+      if (searchInput) {
+        searchInput.addEventListener('keyup', () => {
+          const keyword = searchInput.value.toLowerCase();
+
+          rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(keyword)) {
+              row.style.display = "";
+              row.style.opacity = "1";
+            } else {
+              row.style.display = "none";
+            }
+          });
+        });
+      }
+    });
   </script>
 
 </body>

@@ -26,10 +26,18 @@ if ($qKehadiran && $qKehadiran->num_rows > 0) {
   while ($row = $qKehadiran->fetch_assoc()) {
     $kehadiran['total'] += $row['cnt'];
     switch (strtolower($row['status'])) {
-      case 'hadir': $kehadiran['hadir'] = $row['cnt']; break;
-      case 'izin': $kehadiran['izin'] = $row['cnt']; break;
-      case 'sakit': $kehadiran['sakit'] = $row['cnt']; break;
-      case 'alpha': $kehadiran['alpha'] = $row['cnt']; break;
+      case 'hadir':
+        $kehadiran['hadir'] = $row['cnt'];
+        break;
+      case 'izin':
+        $kehadiran['izin'] = $row['cnt'];
+        break;
+      case 'sakit':
+        $kehadiran['sakit'] = $row['cnt'];
+        break;
+      case 'alpha':
+        $kehadiran['alpha'] = $row['cnt'];
+        break;
     }
   }
 }
@@ -56,7 +64,7 @@ $conn->close();
       <button class="navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-none d-md-flex align-items-center gap-3">
         <span class="badge badge-cyan">ADMIN</span>
         <a href="../../core/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
       </div>
@@ -171,4 +179,5 @@ $conn->close();
   </script>
 
 </body>
+
 </html>

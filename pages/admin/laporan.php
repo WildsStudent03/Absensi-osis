@@ -9,7 +9,19 @@ include "../../assets/boot.php";
   <meta charset="utf-8">
   <title>Laporan Absensi - Absensi OSIS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap 5 -->
+  <style>
+    input[type="date"] {
+      background-color: #000;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      /* agar ikon kalender ikut jadi putih */
+    }
+  </style>
+
   <link href="../../assets/common.css" rel="stylesheet">
 </head>
 
@@ -20,7 +32,7 @@ include "../../assets/boot.php";
       <button class="navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-none d-md-flex align-items-center gap-3">
         <span class="badge badge-cyan" data-user-role>ADMIN</span>
         <a href="../../core/logout.php" data-logout class="btn btn-outline-light btn-sm">Logout</a>
       </div>
@@ -57,7 +69,7 @@ include "../../assets/boot.php";
         <div class="card rounded-3xl mt-3">
           <div class="card-body">
             <form method="GET" class="row g-3">
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <label class="form-label text-light">Filter Jurusan</label>
                 <select name="jurusan" class="form-select">
                   <option value="ALL" <?= (isset($_GET['jurusan']) && $_GET['jurusan'] === 'ALL') ? 'selected' : ''; ?>>Semua</option>
@@ -66,39 +78,52 @@ include "../../assets/boot.php";
                   <option value="ATPH" <?= (isset($_GET['jurusan']) && $_GET['jurusan'] === 'ATPH') ? 'selected' : ''; ?>>ATPH</option>
                 </select>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
+                <label class="form-label text-light">Pilih Jadwal</label>
+                <select name="jadwal_id" class="form-select">
+                  <option value="">-- Semua Jadwal --</option>
+                  <?php
+                  include '../../database/connect.php';
+                  $selectedJadwalId = $_GET['jadwal_id'] ?? '';
+                  $stmtJadwal = $conn->prepare("SELECT id, judul, tanggal FROM jadwal_kegiatan ORDER BY tanggal DESC");
+                  $stmtJadwal->execute();
+                  $resultJadwal = $stmtJadwal->get_result();
+                  while ($row = $resultJadwal->fetch_assoc()):
+                    $isSelected = ($selectedJadwalId == $row['id']) ? 'selected' : '';
+                  ?>
+                    <option value="<?= $row['id'] ?>" <?= $isSelected ?>><?= htmlspecialchars($row['judul']) ?> (<?= date('d/m/Y', strtotime($row['tanggal'])) ?>)</option>
+                  <?php endwhile;
+                  $stmtJadwal->close(); ?>
+                </select>
+              </div>
+              <div class="col-md-3">
                 <label class="form-label text-light">Tanggal Acuan</label>
                 <input type="date" name="tanggal" class="form-control" value="<?= isset($_GET['tanggal']) ? $_GET['tanggal'] : date('Y-m-d'); ?>">
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <label class="form-label text-light">&nbsp;</label>
                 <button type="submit" class="btn btn-primary w-100">Filter</button>
               </div>
             </form>
 
             <?php
-            // Include database connection
-            include '../../database/connect.php';
-
             // Get filter parameters
             $jurusanFilter = $_GET['jurusan'] ?? 'ALL';
-            $tanggalAcuan = $_GET['tanggal'] ?? date('Y-m-d');
+            $jadwalFilter = $_GET['jadwal_id'] ?? '';
+
+            // Handle month input (YYYY-MM format) or date input (YYYY-MM-DD format)
+            if (isset($_GET['bulan']) && !empty($_GET['bulan'])) {
+              // bulan format: YYYY-MM, convert to first day of month
+              $tanggalAcuan = $_GET['bulan'] . '-01';
+            } else {
+              $tanggalAcuan = $_GET['tanggal'] ?? date('Y-m-d');
+            }
 
             // Function to get weekly data
-            function getWeeklyData($conn, $tanggalAcuan, $jurusanFilter)
+            function getWeeklyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter)
             {
               $startDate = date('Y-m-d', strtotime($tanggalAcuan . ' -6 days'));
               $endDate = $tanggalAcuan;
-
-              $whereClause = "WHERE a.tanggal BETWEEN ? AND ?";
-              $params = [$startDate, $endDate];
-              $types = 'ss';
-
-              if ($jurusanFilter !== 'ALL') {
-                $whereClause .= " AND d.jurusan = ?";
-                $params[] = $jurusanFilter;
-                $types .= 's';
-              }
 
               // Select only the latest absensi per user/tanggal to avoid duplicates
               $sql = "SELECT 
@@ -120,14 +145,19 @@ include "../../assets/boot.php";
         LEFT JOIN jadwal_kegiatan j ON a.jadwal_id = j.id
         WHERE a.tanggal BETWEEN ? AND ?";
 
-              // build types and params: subquery uses start/end, outer WHERE repeats start/end; append jurusan if needed
-              $execTypes = $types . $types; // 'ss' + possible 's' => duplicate start/end for subquery and outer
-              $execParams = array_merge($params, $params);
+              $execParams = [$startDate, $endDate, $startDate, $endDate];
+              $execTypes = 'ssss';
 
               if ($jurusanFilter !== 'ALL') {
                 $sql .= " AND d.jurusan = ?";
-                $execTypes .= 's';
                 $execParams[] = $jurusanFilter;
+                $execTypes .= 's';
+              }
+
+              if (!empty($jadwalFilter)) {
+                $sql .= " AND a.jadwal_id = ?";
+                $execParams[] = intval($jadwalFilter);
+                $execTypes .= 'i';
               }
 
               $sql .= " ORDER BY a.tanggal ASC, d.nama ASC";
@@ -146,7 +176,7 @@ include "../../assets/boot.php";
             }
 
             // Function to get monthly data
-            function getMonthlyData($conn, $tanggalAcuan, $jurusanFilter)
+            function getMonthlyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter)
             {
               $year = date('Y', strtotime($tanggalAcuan));
               $month = date('m', strtotime($tanggalAcuan));
@@ -171,18 +201,19 @@ include "../../assets/boot.php";
         LEFT JOIN jadwal_kegiatan j ON a.jadwal_id = j.id
         WHERE YEAR(a.tanggal) = ? AND MONTH(a.tanggal) = ?";
 
-              // build base params/types for year/month
-              $params = [$year, $month];
-              $types = 'ss';
-
-              // build exec types/params (subquery year/month and outer year/month)
-              $execTypes = $types . $types; // 'ss' + possible 's'
-              $execParams = array_merge($params, $params);
+              $execParams = [$year, $month, $year, $month];
+              $execTypes = 'siss';
 
               if ($jurusanFilter !== 'ALL') {
                 $sql .= " AND d.jurusan = ?";
-                $execTypes .= 's';
                 $execParams[] = $jurusanFilter;
+                $execTypes .= 's';
+              }
+
+              if (!empty($jadwalFilter)) {
+                $sql .= " AND a.jadwal_id = ?";
+                $execParams[] = intval($jadwalFilter);
+                $execTypes .= 'i';
               }
 
               $sql .= " ORDER BY a.status ASC, d.nama ASC";
@@ -201,8 +232,8 @@ include "../../assets/boot.php";
             }
 
             // Get data
-            $weeklyData = getWeeklyData($conn, $tanggalAcuan, $jurusanFilter);
-            $monthlyData = getMonthlyData($conn, $tanggalAcuan, $jurusanFilter);
+            $weeklyData = getWeeklyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter);
+            $monthlyData = getMonthlyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter);
 
             // Generate date range for weekly
             $startDate = date('Y-m-d', strtotime($tanggalAcuan . ' -6 days'));
@@ -309,7 +340,42 @@ include "../../assets/boot.php";
               <div class="col-12">
                 <div class="card rounded-3xl">
                   <div class="card-body">
-                    <h6 class="mb-3 text-light">Rekap Bulanan (<?= date('F Y', strtotime($tanggalAcuan)) ?>)</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h6 class="text-light mb-0">Rekap Bulanan (<?= date('F Y', strtotime($tanggalAcuan)) ?>)</h6>
+                      <div>
+                        <form method="GET" class="d-flex gap-2 align-items-center">
+                          <input type="hidden" name="jurusan" value="<?= htmlspecialchars($jurusanFilter) ?>">
+                          <input type="hidden" name="jadwal_id" value="<?= htmlspecialchars($jadwalFilter) ?>">
+
+                          <label class="form-label text-light mb-0 me-2">Pilih Bulan:</label>
+
+                          <select
+                            name="bulan"
+                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            style="width: 180px;"
+                            onchange="this.form.submit()">
+                            <?php
+                            // Generate bulan dropdown untuk 2 tahun ke belakang hingga 2 tahun ke depan
+                            $currentYear = date('Y');
+                            $currentMonth = date('m');
+                            $selectedMonth = date('Y-m', strtotime($tanggalAcuan));
+
+                            for ($y = $currentYear - 2; $y <= $currentYear + 2; $y++) {
+                              for ($m = 1; $m <= 12; $m++) {
+                                $monthValue = sprintf('%04d-%02d', $y, $m);
+                                $monthLabel = date('F Y', strtotime("$y-$m-01"));
+                                $isSelected = ($monthValue === $selectedMonth) ? 'selected' : '';
+                            ?>
+                                <option value="<?= $monthValue ?>" <?= $isSelected ?>><?= $monthLabel ?></option>
+                            <?php
+                              }
+                            }
+                            ?>
+                          </select>
+                        </form>
+
+                      </div>
+                    </div>
                     <div class="table-responsive">
                       <table class="table table-dark table-hover">
                         <thead>
@@ -404,188 +470,66 @@ include "../../assets/boot.php";
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Print button
+      const reportContent = document.querySelector('.row.g-3.mt-3');
+      if (!reportContent) return;
+
+      // 🔹 Tombol Print (tetap pakai print dialog)
       document.getElementById('btnPrint').addEventListener('click', () => {
-        // Get only the report content
-        const reportContent = document.querySelector('.row.g-3.mt-3');
+        // Buat area print khusus
+        const printArea = document.createElement('div');
+        printArea.innerHTML = `
+        <h1 style="text-align:center; margin-bottom:20px;">Laporan Absensi OSIS</h1>
+        <p style="text-align:center; color:#666; margin-bottom:20px;">
+          Tanggal: ${new Date().toLocaleDateString('id-ID')}
+        </p>
+        ${reportContent.innerHTML}
+      `;
 
-        if (!reportContent) {
-          alert('Tidak ada data laporan untuk dicetak');
-          return;
-        }
-
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank');
-
-        // Create print content with only the reports
-        const printContent = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Laporan Absensi OSIS - ${new Date().toLocaleDateString('id-ID')}</title>
-            <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                margin: 20px; 
-                background: white; 
-                color: black; 
-              }
-              .card { 
-                border: 1px solid #ccc; 
-                border-radius: 8px; 
-                margin-bottom: 20px; 
-                background: white; 
-              }
-              .card-body { padding: 15px; }
-              .table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin-bottom: 20px; 
-              }
-              .table th, .table td { 
-                border: 1px solid #ccc; 
-                padding: 8px; 
-                text-align: left; 
-              }
-              .table th { 
-                background: #f8f9fa; 
-                font-weight: bold; 
-              }
-              .table-secondary { background: #f8f9fa; }
-              .text-success { color: #28a745; font-weight: bold; }
-              .text-info { color: #17a2b8; font-weight: bold; }
-              .text-warning { color: #ffc107; font-weight: bold; }
-              .text-danger { color: #dc3545; font-weight: bold; }
-              .fw-bold { font-weight: bold; }
-              .fs-1 { font-size: 2.5rem; }
-              .fs-2 { font-size: 2rem; }
-              .text-center { text-align: center; }
-              .text-muted { color: #6c757d; }
-              .mb-3 { margin-bottom: 1rem; }
-              .mt-4 { margin-top: 1.5rem; }
-              .row { display: flex; flex-wrap: wrap; }
-              .col-md-3 { width: 25%; }
-              .col-md-12 { width: 100%; }
-              h6 { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; }
-              @media print {
-                body { margin: 0; }
-                .card { break-inside: avoid; }
-              }
-            </style>
-          </head>
-          <body>
-            <h1 style="text-align: center; margin-bottom: 30px;">Laporan Absensi OSIS</h1>
-            <p style="text-align: center; color: #666; margin-bottom: 30px;">Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
-            ${reportContent.innerHTML}
-          </body>
-          </html>
-        `;
-
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-
-        // Wait for content to load then print
-        printWindow.onload = () => {
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-          }, 500);
-        };
+        const originalBody = document.body.innerHTML;
+        document.body.innerHTML = printArea.innerHTML;
+        window.print();
+        document.body.innerHTML = originalBody;
       });
 
-      // Export PDF button
+      // 🔹 Tombol Export PDF (langsung download tanpa pindah halaman)
       document.getElementById('btnExport').addEventListener('click', () => {
-        // Get only the report content
-        const reportContent = document.querySelector('.row.g-3.mt-3');
+        const element = document.createElement('div');
+        element.innerHTML = `
+        <h1 style="text-align:center; margin-bottom:20px;">Laporan Absensi OSIS</h1>
+        <p style="text-align:center; color:#666; margin-bottom:20px;">
+          Tanggal: ${new Date().toLocaleDateString('id-ID')}
+        </p>
+        ${reportContent.innerHTML}
+      `;
 
-        if (!reportContent) {
-          alert('Tidak ada data laporan untuk diekspor');
-          return;
-        }
-
-        // Create a new window for PDF export
-        const printWindow = window.open('', '_blank');
-
-        // Create PDF content with only the reports
-        const pdfContent = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Laporan Absensi OSIS - ${new Date().toLocaleDateString('id-ID')}</title>
-            <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                margin: 20px; 
-                background: white; 
-                color: black; 
-              }
-              .card { 
-                border: 1px solid #ccc; 
-                border-radius: 8px; 
-                margin-bottom: 20px; 
-                background: white; 
-              }
-              .card-body { padding: 15px; }
-              .table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin-bottom: 20px; 
-              }
-              .table th, .table td { 
-                border: 1px solid #ccc; 
-                padding: 8px; 
-                text-align: left; 
-              }
-              .table th { 
-                background: #f8f9fa; 
-                font-weight: bold; 
-              }
-              .table-secondary { background: #f8f9fa; }
-              .text-success { color: #28a745; font-weight: bold; }
-              .text-info { color: #17a2b8; font-weight: bold; }
-              .text-warning { color: #ffc107; font-weight: bold; }
-              .text-danger { color: #dc3545; font-weight: bold; }
-              .fw-bold { font-weight: bold; }
-              .fs-1 { font-size: 2.5rem; }
-              .fs-2 { font-size: 2rem; }
-              .text-center { text-align: center; }
-              .text-muted { color: #6c757d; }
-              .mb-3 { margin-bottom: 1rem; }
-              .mt-4 { margin-top: 1.5rem; }
-              .row { display: flex; flex-wrap: wrap; }
-              .col-md-3 { width: 25%; }
-              .col-md-12 { width: 100%; }
-              h6 { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; }
-              @media print {
-                body { margin: 0; }
-                .card { break-inside: avoid; }
-              }
-            </style>
-          </head>
-          <body>
-            <h1 style="text-align: center; margin-bottom: 30px;">Laporan Absensi OSIS</h1>
-            <p style="text-align: center; color: #666; margin-bottom: 30px;">Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
-            ${reportContent.innerHTML}
-          </body>
-          </html>
-        `;
-
-        printWindow.document.write(pdfContent);
-        printWindow.document.close();
-
-        // Wait for content to load then print
-        printWindow.onload = () => {
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-          }, 500);
+        const opt = {
+          margin: 0.5,
+          filename: `Laporan_Absensi_OSIS_${new Date().toLocaleDateString('id-ID')}.pdf`,
+          image: {
+            type: 'jpeg',
+            quality: 0.98
+          },
+          html2canvas: {
+            scale: 2,
+            useCORS: true
+          },
+          jsPDF: {
+            unit: 'in',
+            format: 'a4',
+            orientation: 'portrait'
+          }
         };
+
+        html2pdf().set(opt).from(element).save();
       });
     });
   </script>
+
+
 </body>
 
 </html>

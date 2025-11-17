@@ -1,4 +1,4 @@
-<?php 
+<?php
 include "../../assets/boot.php";
 ?>
 
@@ -20,9 +20,9 @@ include "../../assets/boot.php";
       <button class="navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-none d-md-flex align-items-center gap-3">
         <span class="badge badge-cyan" data-user-role>ADMIN</span>
-     <a href="../../core/logout.php" data-logout class="btn btn-outline-light btn-sm">Logout</a>
+        <a href="../../core/logout.php" data-logout class="btn btn-outline-light btn-sm">Logout</a>
       </div>
     </div>
   </header>

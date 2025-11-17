@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $check->close();
   }
 
- 
+
   if (count($errors) === 0) {
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $role = "admin";
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
     }
 
-  
+
     if (count($errors) === 0) {
       $insert = $conn->prepare("INSERT INTO users (nama_lengkap, email, password, role, foto) VALUES (?, ?, ?, ?, ?)");
       $insert->bind_param("sssss", $nama, $email, $hash, $role, $foto_name);
@@ -86,9 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button class="navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-none d-md-flex align-items-center gap-3">
         <span class="badge badge-cyan" data-user-role>ADMIN</span>
-        <a href="../../core/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
+        <a href="../../core/logout.php" data-logout class="btn btn-outline-light btn-sm">Logout</a>
       </div>
     </div>
   </header>
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" enctype="multipart/form-data">
           <div class="mb-3">
             <label class="form-label text-white">Nama Lengkap</label>
-            <input type="text"class="form-control bg-dark text-white border-secondary" name="nama_lengkap" required>
+            <input type="text" class="form-control bg-dark text-white border-secondary" name="nama_lengkap" required>
           </div>
           <div class="mb-3">
             <label class="form-label text-white">Email</label>
