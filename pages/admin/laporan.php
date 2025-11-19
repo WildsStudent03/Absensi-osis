@@ -245,6 +245,169 @@ include "../../assets/boot.php";
             ?>
 
             <div class="row g-3 mt-3">
+              <!-- Detail Riwayat Absensi Per Siswa -->
+              <div class="col-12">
+                <div class="card rounded-3xl">
+                  <div class="card-body">
+                    <h6 class="mb-3 text-light">Detail Riwayat Absensi (<?= date('F Y', strtotime($tanggalAcuan)) ?>)</h6>
+                    <div class="table-responsive">
+                      <table class="table table-dark table-hover">
+                        <thead>
+                          <tr>
+                            <th>Tanggal</th>
+                            <th>Nama</th>
+                            <th>Kelas</th>
+                            <th>Jurusan</th>
+                            <th>Waktu</th>
+                            <th>Status</th>
+                            <th>Keterangan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php
+                          $year = date('Y', strtotime($tanggalAcuan));
+                          $month = date('m', strtotime($tanggalAcuan));
+
+                          $sqlDetail = "SELECT 
+                            a.tanggal,
+                            a.status,
+                            a.keterangan,
+                            d.nama,
+                            d.kelas,
+                            d.jurusan,
+                            d.idsiswa,
+                            a.created_at AS waktu_input
+                          FROM absensi a
+                          JOIN (
+                            SELECT user_id, tanggal, MAX(created_at) AS max_created
+                            FROM absensi
+                            WHERE YEAR(tanggal) = ? AND MONTH(tanggal) = ?
+                            GROUP BY user_id, tanggal
+                          ) m ON a.user_id = m.user_id AND a.tanggal = m.tanggal AND a.created_at = m.max_created
+                          JOIN datasiswa d ON a.user_id = d.idsiswa
+                          WHERE YEAR(a.tanggal) = ? AND MONTH(a.tanggal) = ?";
+
+                          $execParamsDetail = [$year, $month, $year, $month];
+                          $execTypesDetail = 'iiii';
+
+                          if ($jurusanFilter !== 'ALL') {
+                            $sqlDetail .= " AND d.jurusan = ?";
+                            $execParamsDetail[] = $jurusanFilter;
+                            $execTypesDetail .= 's';
+                          }
+
+                          $sqlDetail .= " ORDER BY d.nama ASC, a.tanggal DESC";
+
+                          $stmtDetail = $conn->prepare($sqlDetail);
+                          $stmtDetail->bind_param($execTypesDetail, ...$execParamsDetail);
+                          $stmtDetail->execute();
+                          $resultDetail = $stmtDetail->get_result();
+
+                          $detailData = [];
+                          while ($rowDetail = $resultDetail->fetch_assoc()) {
+                            $detailData[] = $rowDetail;
+                          }
+
+                          // Group by siswa
+                          $siswaGroups = [];
+                          foreach ($detailData as $row) {
+                            $nama = $row['nama'];
+                            if (!isset($siswaGroups[$nama])) {
+                              $siswaGroups[$nama] = [
+                                'kelas' => $row['kelas'],
+                                'jurusan' => $row['jurusan'],
+                                'idsiswa' => $row['idsiswa'],
+                                'records' => [],
+                                'total_hadir' => 0,
+                                'total_izin' => 0,
+                                'total_sakit' => 0,
+                                'total_alpha' => 0
+                              ];
+                            }
+                            $siswaGroups[$nama]['records'][] = $row;
+
+                            // Count status
+                            switch ($row['status']) {
+                              case 'Hadir':
+                                $siswaGroups[$nama]['total_hadir']++;
+                                break;
+                              case 'Izin':
+                                $siswaGroups[$nama]['total_izin']++;
+                                break;
+                              case 'Sakit':
+                                $siswaGroups[$nama]['total_sakit']++;
+                                break;
+                              case 'Alpha':
+                                $siswaGroups[$nama]['total_alpha']++;
+                                break;
+                            }
+                          }
+
+                          // Display grouped data
+                          if (empty($siswaGroups)): ?>
+                            <tr>
+                              <td colspan="7" class="text-center text-muted py-4">Tidak ada data absensi untuk periode ini</td>
+                            </tr>
+                            <?php else:
+                            foreach ($siswaGroups as $nama => $siswaData):
+                            ?>
+                              <!-- Detail rows untuk siswa ini -->
+                              <?php foreach ($siswaData['records'] as $rowDetail): ?>
+                                <?php
+                                $status = $rowDetail['status'];
+                                $keterangan = $rowDetail['keterangan'] ?? '';
+                                $time = isset($rowDetail['waktu_input']) ? date('H:i', strtotime($rowDetail['waktu_input'])) : '';
+
+                                $statusColor = '';
+                                switch ($status) {
+                                  case 'Hadir':
+                                    $statusColor = 'text-success fw-bold';
+                                    break;
+                                  case 'Izin':
+                                    $statusColor = 'text-info fw-bold';
+                                    break;
+                                  case 'Sakit':
+                                    $statusColor = 'text-warning fw-bold';
+                                    break;
+                                  case 'Alpha':
+                                    $statusColor = 'text-danger fw-bold';
+                                    break;
+                                }
+                                ?>
+                                <tr>
+                                  <td><?= date('d/m/Y', strtotime($rowDetail['tanggal'])) ?></td>
+                                  <td><?= htmlspecialchars($rowDetail['nama']) ?></td>
+                                  <td><?= htmlspecialchars($rowDetail['kelas'] ?? '') ?></td>
+                                  <td><?= htmlspecialchars($rowDetail['jurusan']) ?></td>
+                                  <td><?= htmlspecialchars($time) ?></td>
+                                  <td><span class="<?= $statusColor ?>"><?= $status ?></span></td>
+                                  <td><?= htmlspecialchars($keterangan) ?></td>
+                                </tr>
+                              <?php endforeach; ?>
+                              <!-- Total row untuk siswa ini -->
+                              <tr style="background-color: #2d3748; color: #fff;">
+                                <td colspan="7">
+                                  <div class="d-flex justify-content-between align-items-center">
+                                    <strong><?= htmlspecialchars($nama) ?> - TOTAL</strong>
+                                    <div>
+                                      <span class="badge bg-success me-2">Hadir: <?= $siswaData['total_hadir'] ?></span>
+                                      <span class="badge bg-info me-2">Izin: <?= $siswaData['total_izin'] ?></span>
+                                      <span class="badge bg-warning me-2">Sakit: <?= $siswaData['total_sakit'] ?></span>
+                                      <span class="badge bg-danger me-2">Alpha: <?= $siswaData['total_alpha'] ?></span>
+                                      <span class="badge bg-light text-dark">Total: <?= $siswaData['total_hadir'] + $siswaData['total_izin'] + $siswaData['total_sakit'] + $siswaData['total_alpha'] ?></span>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                          <?php endforeach;
+                          endif; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Rekap Mingguan -->
               <div class="col-12">
                 <div class="card rounded-3xl">
