@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 19, 2025 at 10:16 AM
+-- Generation Time: Nov 19, 2025 at 10:59 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -42,25 +42,44 @@ CREATE TABLE `absensi` (
 --
 
 INSERT INTO `absensi` (`id`, `user_id`, `jadwal_id`, `tanggal`, `status`, `keterangan`, `created_at`) VALUES
-(165, 2, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(166, 3, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(167, 4, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(168, 5, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(169, 6, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(170, 7, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(171, 8, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(172, 9, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(173, 10, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(174, 11, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(175, 12, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(176, 13, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(177, 14, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(178, 15, 8, '2025-11-17', 'Izin', 'ffff', '2025-11-17 02:48:30'),
-(179, 16, 8, '2025-11-17', 'Alpha', NULL, '2025-11-17 02:48:30'),
-(180, 17, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(181, 18, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(182, 19, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
-(183, 20, 8, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30');
+(165, 2, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(166, 3, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(167, 4, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(168, 5, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(169, 6, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(170, 7, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(171, 8, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(172, 9, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(173, 10, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(174, 11, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(175, 12, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(176, 13, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(177, 14, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(178, 15, NULL, '2025-11-17', 'Izin', 'ffff', '2025-11-17 02:48:30'),
+(179, 16, NULL, '2025-11-17', 'Alpha', NULL, '2025-11-17 02:48:30'),
+(180, 17, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(181, 18, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(182, 19, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(183, 20, NULL, '2025-11-17', 'Hadir', NULL, '2025-11-17 02:48:30'),
+(184, 2, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(185, 3, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(186, 4, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(187, 5, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(188, 6, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(189, 7, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(190, 8, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(191, 9, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(192, 10, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(193, 11, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(194, 12, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(195, 13, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(196, 14, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(197, 15, 13, '2025-11-19', 'Sakit', 'hh', '2025-11-19 10:57:42'),
+(198, 16, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(199, 17, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(200, 18, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(201, 19, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42'),
+(202, 20, 13, '2025-11-19', 'Hadir', NULL, '2025-11-19 10:57:42');
 
 -- --------------------------------------------------------
 
@@ -114,9 +133,7 @@ CREATE TABLE `jadwal_kegiatan` (
   `id` int NOT NULL,
   `judul` varchar(255) NOT NULL,
   `tanggal` date NOT NULL,
-  `waktu` time DEFAULT NULL,
   `lokasi` varchar(255) NOT NULL,
-  `deskripsi` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -125,9 +142,8 @@ CREATE TABLE `jadwal_kegiatan` (
 -- Dumping data for table `jadwal_kegiatan`
 --
 
-INSERT INTO `jadwal_kegiatan` (`id`, `judul`, `tanggal`, `waktu`, `lokasi`, `deskripsi`, `created_at`, `updated_at`) VALUES
-(8, 'RAPAT penting', '2025-11-17', '12:12:00', 'lapangan', NULL, '2025-10-13 01:34:21', '2025-11-17 02:39:31'),
-(10, 'rapat OSIS', '2025-11-13', '07:00:00', 'KANTOR', NULL, '2025-11-13 06:49:59', NULL);
+INSERT INTO `jadwal_kegiatan` (`id`, `judul`, `tanggal`, `lokasi`, `created_at`, `updated_at`) VALUES
+(13, 'RAPAT penting', '2025-11-19', 'Lapangan Sekolahj', '2025-11-19 10:53:48', '2025-11-19 10:58:34');
 
 -- --------------------------------------------------------
 
@@ -192,7 +208,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `absensi`
 --
 ALTER TABLE `absensi`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=184;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=203;
 
 --
 -- AUTO_INCREMENT for table `datasiswa`
@@ -204,7 +220,7 @@ ALTER TABLE `datasiswa`
 -- AUTO_INCREMENT for table `jadwal_kegiatan`
 --
 ALTER TABLE `jadwal_kegiatan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `users`
