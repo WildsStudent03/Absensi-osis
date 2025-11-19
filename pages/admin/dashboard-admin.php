@@ -67,7 +67,10 @@ $conn->close();
       </button>
       <div class="d-none d-md-flex align-items-center gap-3">
         <span class="badge badge-cyan">ADMIN</span>
-        <a href="../../core/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
+         <a href="../../core/logout.php" 
+       data-logout 
+       class="btn btn-outline-light btn-sm"
+       onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?');">Logout</a>
       </div>
     </div>
   </header>

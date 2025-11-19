@@ -19,6 +19,9 @@
       <div class="small text-muted">Masuk sebagai</div>
       <div data-user-name class="text-light">Admin</div>
     </div>
-    <a href="../../core/logout.php" data-logout class="btn btn-outline-light btn-sm">Logout</a>
+  <a href="../../core/logout.php" 
+       data-logout 
+       class="btn btn-outline-light btn-sm"
+       onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?');">Logout</a>
   </div>
 </aside>
