@@ -1,6 +1,7 @@
 <?php
 session_start();
 include __DIR__ . '/../../database/connect.php';
+include "../../includes/auth_guard.php";
 include "../../assets/boot.php";
 
 $errors = [];

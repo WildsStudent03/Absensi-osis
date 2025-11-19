@@ -1,5 +1,6 @@
 <?php
 include "../../assets/boot.php";
+include "../../includes/auth_guard.php";
 include "../../database/connect.php";
 session_start();
 

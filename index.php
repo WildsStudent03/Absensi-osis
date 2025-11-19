@@ -91,7 +91,7 @@ unset($_SESSION['login_errors']);
 
             <form id="loginForm" class="mt-3" method="POST" action="core/proses-login.php">
               <div class="mb-3">
-                <label class="form-label text-white">Email</label>
+                <label class="form-label text-white">Email atau username</label>
                 <input type="text"
                        class="form-control input-dark"
                        name="emailNis"
