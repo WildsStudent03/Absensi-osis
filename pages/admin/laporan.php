@@ -25,18 +25,59 @@ include "../../includes/auth_guard.php";
 
     <link href="../../assets/common.css" rel="stylesheet">
     <style>
-      /* Paksa teks hitam saat print */
-      @media print {
-        * { color: #000 !important; text-shadow: none !important; box-shadow: none !important; }
-        html, body { background: #fff !important; }
-        .card, .table, .table * { background: #fff !important; }
-        .badge, .text-success, .text-info, .text-warning, .text-danger, .text-light, .text-muted { color: #000 !important; }
-        .table-dark { --bs-table-bg: #fff !important; --bs-table-color: #000 !important; --bs-table-border-color: #000 !important; }
-        .table-dark thead th { border-bottom: 1px solid #000 !important; }
-        .navbar, .offcanvas, .sidebar { display: none !important; }
-        .no-print { display: none !important; }
-        a { color: #000 !important; }
-      }
+        /* Paksa teks hitam saat print */
+        @media print {
+            * {
+                color: #000 !important;
+                text-shadow: none !important;
+                box-shadow: none !important;
+            }
+
+            html,
+            body {
+                background: #fff !important;
+            }
+
+            .card,
+            .table,
+            .table * {
+                background: #fff !important;
+            }
+
+            .badge,
+            .text-success,
+            .text-info,
+            .text-warning,
+            .text-danger,
+            .text-light,
+            .text-muted {
+                color: #000 !important;
+            }
+
+            .table-dark {
+                --bs-table-bg: #fff !important;
+                --bs-table-color: #000 !important;
+                --bs-table-border-color: #000 !important;
+            }
+
+            .table-dark thead th {
+                border-bottom: 1px solid #000 !important;
+            }
+
+            .navbar,
+            .offcanvas,
+            .sidebar {
+                display: none !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            a {
+                color: #000 !important;
+            }
+        }
     </style>
 </head>
 
@@ -49,10 +90,10 @@ include "../../includes/auth_guard.php";
             </button>
             <div class="d-none d-md-flex align-items-center gap-3">
                 <span class="badge badge-cyan" data-user-role>ADMIN</span>
-                  <a href="../../core/logout.php" 
-       data-logout 
-       class="btn btn-outline-light btn-sm"
-       onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?');">Logout</a>
+                  <a href="../../core/logout.php"
+                    data-logout
+                    class="btn btn-outline-light btn-sm"
+                    onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?');">Logout</a>
             </div>
         </div>
     </header>
@@ -87,7 +128,7 @@ include "../../includes/auth_guard.php";
                 <div class="card rounded-3xl mt-3">
                     <div class="card-body">
                         <form method="GET" class="row g-3 no-print">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label text-light">Filter Jurusan</label>
                                 <select name="jurusan" class="form-select">
                                     <option value="ALL" <?= (isset($_GET['jurusan']) && $_GET['jurusan'] === 'ALL') ? 'selected' : ''; ?>>Semua</option>
@@ -96,12 +137,29 @@ include "../../includes/auth_guard.php";
                                     <option value="ATPH" <?= (isset($_GET['jurusan']) && $_GET['jurusan'] === 'ATPH') ? 'selected' : ''; ?>>ATPH</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-light">Pilih Jadwal</label>
-                                <select name="jadwal_id" class="form-select">
-                                    <option value="">-- Semua Jadwal --</option>
+                            <div class="col-md-2">
+                                <label class="form-label text-light">Filter Kelas</label>
+                                <select name="kelas" class="form-select">
+                                    <option value="" <?= (isset($_GET['kelas']) && $_GET['kelas'] === '') ? 'selected' : ''; ?>>Semua Kelas</option>
                                     <?php
                                     include '../../database/connect.php';
+                                    $selectedKelas = $_GET['kelas'] ?? '';
+                                    $stmtKelas = $conn->prepare("SELECT DISTINCT kelas FROM datasiswa ORDER BY kelas ASC");
+                                    $stmtKelas->execute();
+                                    $resultKelas = $stmtKelas->get_result();
+                                    while ($row = $resultKelas->fetch_assoc()):
+                                        $isSelected = ($selectedKelas == $row['kelas']) ? 'selected' : '';
+                                    ?>
+                                        <option value="<?= htmlspecialchars($row['kelas']) ?>" <?= $isSelected ?>><?= htmlspecialchars($row['kelas']) ?></option>
+                                    <?php endwhile;
+                                    $stmtKelas->close(); ?>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label text-light">Pilih Jadwal</label>
+                                <select name="jadwal_id" class="form-select">
+                                    <option value="">Semua Jadwal</option>
+                                    <?php
                                     $selectedJadwalId = $_GET['jadwal_id'] ?? '';
                                     $stmtJadwal = $conn->prepare("SELECT id, judul, tanggal FROM jadwal_kegiatan ORDER BY tanggal DESC");
                                     $stmtJadwal->execute();
@@ -114,7 +172,7 @@ include "../../includes/auth_guard.php";
                                     $stmtJadwal->close(); ?>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label text-light">Tanggal Acuan</label>
                                 <input type="date" name="tanggal" class="form-control" value="<?= isset($_GET['tanggal']) ? $_GET['tanggal'] : date('Y-m-d'); ?>">
                             </div>
@@ -127,6 +185,7 @@ include "../../includes/auth_guard.php";
                         <?php
                         // Get filter parameters
                         $jurusanFilter = $_GET['jurusan'] ?? 'ALL';
+                        $kelasFilter = $_GET['kelas'] ?? '';
                         $jadwalFilter = $_GET['jadwal_id'] ?? '';
 
                         // Handle month input (YYYY-MM format) or date input (YYYY-MM-DD format)
@@ -138,7 +197,7 @@ include "../../includes/auth_guard.php";
                         }
 
                         // Function to get weekly data
-                        function getWeeklyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter)
+                        function getWeeklyData($conn, $tanggalAcuan, $jurusanFilter, $kelasFilter, $jadwalFilter)
                         {
                             $startDate = date('Y-m-d', strtotime($tanggalAcuan . ' -6 days'));
                             $endDate = $tanggalAcuan;
@@ -172,6 +231,12 @@ include "../../includes/auth_guard.php";
                                 $execTypes .= 's';
                             }
 
+                            if (!empty($kelasFilter)) {
+                                $sql .= " AND d.kelas = ?";
+                                $execParams[] = $kelasFilter;
+                                $execTypes .= 's';
+                            }
+
                             if (!empty($jadwalFilter)) {
                                 $sql .= " AND a.jadwal_id = ?";
                                 $execParams[] = intval($jadwalFilter);
@@ -194,7 +259,7 @@ include "../../includes/auth_guard.php";
                         }
 
                         // Function to get monthly data
-                        function getMonthlyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter)
+                        function getMonthlyData($conn, $tanggalAcuan, $jurusanFilter, $kelasFilter, $jadwalFilter)
                         {
                             $year = date('Y', strtotime($tanggalAcuan));
                             $month = date('m', strtotime($tanggalAcuan));
@@ -228,6 +293,12 @@ include "../../includes/auth_guard.php";
                                 $execTypes .= 's';
                             }
 
+                            if (!empty($kelasFilter)) {
+                                $sql .= " AND d.kelas = ?";
+                                $execParams[] = $kelasFilter;
+                                $execTypes .= 's';
+                            }
+
                             if (!empty($jadwalFilter)) {
                                 $sql .= " AND a.jadwal_id = ?";
                                 $execParams[] = intval($jadwalFilter);
@@ -250,8 +321,8 @@ include "../../includes/auth_guard.php";
                         }
 
                         // Get data
-                        $weeklyData = getWeeklyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter);
-                        $monthlyData = getMonthlyData($conn, $tanggalAcuan, $jurusanFilter, $jadwalFilter);
+                        $weeklyData = getWeeklyData($conn, $tanggalAcuan, $jurusanFilter, $kelasFilter, $jadwalFilter);
+                        $monthlyData = getMonthlyData($conn, $tanggalAcuan, $jurusanFilter, $kelasFilter, $jadwalFilter);
 
                         // Generate date range for weekly
                         $startDate = date('Y-m-d', strtotime($tanggalAcuan . ' -6 days'));
@@ -267,7 +338,7 @@ include "../../includes/auth_guard.php";
                             <?php
                             // FILE: laporan.php (Laporan Ringkasan Bulanan)
 
-                            // ASUMSI: Variabel $conn, $tanggalAcuan, dan $jurusanFilter sudah didefinisikan
+                            // ASUMSI: Variabel $conn, $tanggalAcuan, $jurusanFilter, dan $kelasFilter sudah didefinisikan
 
                             $year = date('Y', strtotime($tanggalAcuan));
                             $month = date('m', strtotime($tanggalAcuan));
@@ -303,6 +374,12 @@ include "../../includes/auth_guard.php";
                             if (isset($jurusanFilter) && $jurusanFilter !== 'ALL') {
                                 $sqlDetail .= " AND d.jurusan = ?";
                                 $execParamsDetail[] = $jurusanFilter;
+                                $execTypesDetail .= 's';
+                            }
+
+                            if (!empty($kelasFilter)) {
+                                $sqlDetail .= " AND d.kelas = ?";
+                                $execParamsDetail[] = $kelasFilter;
                                 $execTypesDetail .= 's';
                             }
 
@@ -460,6 +537,7 @@ include "../../includes/auth_guard.php";
                                             <div>
                                                 <form method="GET" class="d-flex gap-2 align-items-center">
                                                     <input type="hidden" name="jurusan" value="<?= htmlspecialchars($jurusanFilter) ?>">
+                                                    <input type="hidden" name="kelas" value="<?= htmlspecialchars($kelasFilter) ?>">
                                                     <input type="hidden" name="jadwal_id" value="<?= htmlspecialchars($jadwalFilter) ?>">
 
                                                     <label class="form-label text-light mb-0 me-2">Pilih Bulan:</label>
@@ -545,35 +623,35 @@ include "../../includes/auth_guard.php";
                                                     <div class="card-body">
                                                         <h6 class="text-light mb-3">Statistik Bulanan</h6>
                                                         <?php
-                                                          $hadir  = isset($monthlyData['Hadir']) ? count($monthlyData['Hadir']) : 0;
-                                                          $izin   = isset($monthlyData['Izin'])  ? count($monthlyData['Izin'])  : 0;
-                                                          $sakit  = isset($monthlyData['Sakit']) ? count($monthlyData['Sakit']) : 0;
-                                                          $alpha  = isset($monthlyData['Alpha']) ? count($monthlyData['Alpha']) : 0;
-                                                          $total  = $hadir + $izin + $sakit + $alpha; // gunakan penjumlahan eksplisit agar konsisten
-                                                          $tidakhadir = $alpha;
-                                                          $persentaseHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
+                                                        $hadir  = isset($monthlyData['Hadir']) ? count($monthlyData['Hadir']) : 0;
+                                                        $izin   = isset($monthlyData['Izin'])  ? count($monthlyData['Izin'])  : 0;
+                                                        $sakit  = isset($monthlyData['Sakit']) ? count($monthlyData['Sakit']) : 0;
+                                                        $alpha  = isset($monthlyData['Alpha']) ? count($monthlyData['Alpha']) : 0;
+                                                        $total  = $hadir + $izin + $sakit + $alpha; // gunakan penjumlahan eksplisit agar konsisten
+                                                        $tidakhadir = $alpha;
+                                                        $persentaseHadir = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
                                                         ?>
                                                         <div class="row text-center g-3">
-                                                          <div class="col-6 col-md-3">
-                                                            <div class="fs-1 text-success fw-bold"><?= $persentaseHadir ?>%</div>
-                                                            <div class="text-muted">Tingkat Kehadiran</div>
-                                                          </div>
-                                                          <div class="col-6 col-md-2">
-                                                            <div class="fs-2 text-success fw-bold"><?= $hadir ?></div>
-                                                            <div class="text-muted">Hadir</div>
-                                                          </div>
-                                                          <div class="col-6 col-md-2">
-                                                            <div class="fs-2 text-info fw-bold"><?= $izin ?></div>
-                                                            <div class="text-muted">Izin</div>
-                                                          </div>
-                                                          <div class="col-6 col-md-2">
-                                                            <div class="fs-2 text-warning fw-bold"><?= $sakit ?></div>
-                                                            <div class="text-muted">Sakit</div>
-                                                          </div>
-                                                          <div class="col-6 col-md-3">
-                                                            <div class="fs-2 text-danger fw-bold"><?= $tidakhadir ?></div>
-                                                            <div class="text-muted">alpha</div>
-                                                          </div>
+                                                            <div class="col-6 col-md-3">
+                                                                <div class="fs-1 text-success fw-bold"><?= $persentaseHadir ?>%</div>
+                                                                <div class="text-muted">Tingkat Kehadiran</div>
+                                                            </div>
+                                                            <div class="col-6 col-md-2">
+                                                                <div class="fs-2 text-success fw-bold"><?= $hadir ?></div>
+                                                                <div class="text-muted">Hadir</div>
+                                                            </div>
+                                                            <div class="col-6 col-md-2">
+                                                                <div class="fs-2 text-info fw-bold"><?= $izin ?></div>
+                                                                <div class="text-muted">Izin</div>
+                                                            </div>
+                                                            <div class="col-6 col-md-2">
+                                                                <div class="fs-2 text-warning fw-bold"><?= $sakit ?></div>
+                                                                <div class="text-muted">Sakit</div>
+                                                            </div>
+                                                            <div class="col-6 col-md-3">
+                                                                <div class="fs-2 text-danger fw-bold"><?= $tidakhadir ?></div>
+                                                                <div class="text-muted">alpha</div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

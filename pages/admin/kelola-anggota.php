@@ -23,10 +23,10 @@ include "../../includes/auth_guard.php";
       </button>
       <div class="d-none d-md-flex align-items-center gap-3">
         <span class="badge badge-cyan" data-user-role>ADMIN</span>
-         <a href="../../core/logout.php" 
-       data-logout 
-       class="btn btn-outline-light btn-sm"
-       onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?');">Logout</a>
+          <a href="../../core/logout.php"
+          data-logout
+          class="btn btn-outline-light btn-sm"
+          onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?');">Logout</a>
       </div>
     </div>
   </header>
@@ -210,7 +210,12 @@ include "../../includes/auth_guard.php";
               </div>
               <div class="col-md-6">
                 <label class="form-label text-white">Kelas</label>
-                <input class="form-control bg-dark text-white border-secondary" name="kelas" required>
+                <select class="form-select bg-dark text-white border-secondary" name="kelas" required>
+                  <option value="">Pilih Kelas</option>
+                  <option value="X">X</option>
+                  <option value="XI">XI</option>
+                  <option value="XII">XII</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label text-white">Jurusan</label>
@@ -228,13 +233,7 @@ include "../../includes/auth_guard.php";
                 <label class="form-label text-white">Jabatan OSIS</label>
                 <input class="form-control bg-dark text-white border-secondary" name="jabatan_osis" placeholder="(opsional)">
               </div>
-              <div class="col-md-6">
-                <label class="form-label text-white">Status OSIS</label>
-                <select name="status_osis" class="form-select bg-dark text-white border-secondary" required>
-                  <option value="Aktif">Aktif</option>
-                  <option value="Nonaktif">Nonaktif</option>
-                </select>
-              </div>
+              <input type="hidden" name="status_osis" value="Aktif">
             </div>
 
             <div class="modal-footer border-secondary mt-3">
@@ -273,7 +272,12 @@ include "../../includes/auth_guard.php";
               </div>
               <div class="col-md-6">
                 <label class="form-label text-white">Kelas</label>
-                <input class="form-control bg-dark text-white border-secondary" name="kelas" id="editKelas" required>
+                <select class="form-select bg-dark text-white border-secondary" name="kelas" id="editKelas" required>
+                  <option value="">Pilih Kelas</option>
+                  <option value="X">X</option>
+                  <option value="XI">XI</option>
+                  <option value="XII">XII</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label class="form-label text-white">Jurusan</label>
